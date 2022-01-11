@@ -30,11 +30,20 @@ typedef struct paddle_position{
     int length;
 } paddle_position;
 
+
+typedef struct client_info_s{
+    int client_number;
+    int score;
+    paddle_position paddle_position;
+    struct sockaddr_in client_address;
+}client_info_s;
 typedef struct message 
 {   
-    int msg_type; /* 0-connect   1-release_ball  2-send_ball 3-move_ball  4-disconnect 5-MAX PLAYERS EXCEED*/ 
+    int msg_type; /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/ 
+    int client_contacting ;// index that can change always < 10 and basicly is the position of the matrix score to look at 
     ball_position_t ball_position;
+    int score[MAX_CLIENTS][2]; //matrix 10 with score value and client number [1] score [2 client number]
+    paddle_position paddle_position[MAX_CLIENTS];
     bool point; 
-    int score[MAX_CLIENTS]; //vetor que tem os scores de cada client
     bool allow_release;
 }message;
