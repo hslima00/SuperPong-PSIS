@@ -102,7 +102,7 @@ int main()
     struct sockaddr_in local_addr; //structure describing an internet socket address
     struct sockaddr_in client_addr;
     message m;
-    socklen_t client_addr_size = sizeof(struct sockaddr_un);
+    socklen_t client_addr_size = sizeof(struct sockaddr_in);
     time_t start,end;
     int timer;
     // 6.2 Step 2 (server.c)
@@ -112,7 +112,7 @@ int main()
 
     /*-----------BIND SOCKET-----------*/
     local_addr.sin_family = AF_INET;
-    local_addr.sin_port = htons(SOCK_PORT);
+    local_addr.sin_port = ntons(SOCK_PORT);
     local_addr.sin_addr.s_addr = INADDR_ANY;
     bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr));
     /*---------------------------------*/

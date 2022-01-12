@@ -37,6 +37,7 @@ typedef struct client_info_s{
     paddle_position paddle_position;
     struct sockaddr_in client_address;
 }client_info_s;
+
 typedef struct message 
 {   
     int msg_type; /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/ 
