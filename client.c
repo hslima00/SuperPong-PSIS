@@ -1,4 +1,4 @@
-#include "remote-char.h"
+#include "header.h"
 
 void criar_socket(int *sock_fd){
     *sock_fd = socket(AF_INET, SOCK_DGRAM, 0);   //cria socket
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
     WINDOW * message_win = newwin(5, WINDOW_SIZE + 25, WINDOW_SIZE, 0);// message window with infomation if in PLAY_STATE
     WINDOW * score_win = newwin(WINDOW_SIZE , 24 , 0 , WINDOW_SIZE+1);//Score window at the right side of the game with player scores
     WINDOW * controls_and_info= newwin(6, WINDOW_SIZE + 25, WINDOW_SIZE+5, 0);// message window with infomation if in PLAY_STATE
-    new_paddle(&paddle , PADLE_SIZE);// initializes all paddle arguments 
+    new_paddle(&paddle , PADDLE_SIZE);// initializes all paddle arguments 
      //TODO_9
     // prepare the movement message  
     

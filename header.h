@@ -14,7 +14,7 @@
 #define SOCK_PORT 4000
 #define MAX_CLIENTS 3
 #define WINDOW_SIZE 30
-#define PADLE_SIZE 3
+#define PADDLE_SIZE 3
 
 typedef enum direction_t {UP, DOWN, LEFT, RIGHT} direction_t;
 
@@ -30,21 +30,28 @@ typedef struct paddle_position{
     int length;
 } paddle_position;
 
+typedef struct client_info_s
+{
+    //Aquilo que o server vai guardar 
+    struct sockaddr_in client_address_s[MAX_CLIENTS];
+    int client_ID_s[MAX_CLIENTS]; 
+    struct paddle_position pdp_s[MAX_CLIENTS]; //paddle position server
+    int clients_online; //counts online clients
+}client_info_s;
 
-typedef struct client_info_s{
-    int client_number;
+
+typedef struct client_info_t{
     int score;
     paddle_position paddle_position;
-    struct sockaddr_in client_address;
-}client_info_s;
+    int client_ID;  // index that can change always < 10 and basicly is the position of the matrix score to look at
+}client_info_t;
 
 typedef struct message 
 {   
-    int msg_type; /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/ 
-    int client_contacting ;// index that can change always < 10 and basicly is the position of the matrix score to look at 
+    
+    int msg_type;   /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/  
+    client_info_t cinfo[MAX_CLIENTS]; 
     ball_position_t ball_position;
-    int score[MAX_CLIENTS][2]; //matrix 10 with score value and client number [1] score [2 client number]
-    paddle_position paddle_position[MAX_CLIENTS];
+    //int score[MAX_CLIENTS][2]; //matrix 10 with score value and m.cinfo.cliend_ID [1] score [2 client number]
     bool point; 
-    bool allow_release;
 }message;
