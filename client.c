@@ -208,7 +208,6 @@ void clear_paddle_nd_msg_window(WINDOW * my_win, paddle_position * paddle, WINDO
 
 void start_play_state(WINDOW * my_win, paddle_position * paddle, message * m ,WINDOW * message_win){
     mvwprintw(message_win, 1,1,"PLAY STATE");
-    if (m->allow_release)mvwprintw(message_win, 1,16,"|\tYOU CAN RELEASE");
     draw_paddle(my_win , paddle, TRUE);// draws paddle in the defined position (mode TRUE=draw/ mode FALSE= delete)
     draw_ball(my_win,&m->ball_position,TRUE);
     wrefresh(my_win);
@@ -283,7 +282,7 @@ int main(int argc, char *argv[])
             continue;
         }
         
-        if(m.point) update_scoreboard(m.score, score_win);
+        if(m.point) update_scoreboard(m.cinfo[m.client_contacting].score, score_win);
         switch(m.msg_type){
             case 2:// send _ball == playstate
                 do{   
@@ -296,10 +295,6 @@ int main(int argc, char *argv[])
                             (const struct sockaddr *)&server_addr, sizeof(server_addr));
                         endwin();// End curses mode	
                         return 0;
-                    }
-                    else if(key == 'r'&& m.allow_release){
-                        m.msg_type = 1; // release message
-                        clear_paddle_nd_msg_window(my_win, &paddle,message_win);
                     }
                     else if(condition) update_ball_and_paddle(my_win, &m,&paddle, key, message_win, scores);
                 }while((!(condition)) && (m.msg_type!=1));            

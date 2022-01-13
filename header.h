@@ -9,7 +9,6 @@
 #include <netinet/in.h>
 #include<arpa/inet.h>
 #include <ncurses.h>
-#include  <time.h>
 
 #define SOCK_PORT 4000
 #define MAX_CLIENTS 3
@@ -33,13 +32,16 @@ typedef struct paddle_position{
 typedef struct client_info_s
 {
     //Aquilo que o server vai guardar 
-    struct sockaddr_in client_address_s[MAX_CLIENTS];
-    int client_ID_s[MAX_CLIENTS]; 
-    struct paddle_position pdp_s[MAX_CLIENTS]; //paddle position server
-    int clients_online; //counts online clients
+    char client_address_s[INET_ADDRSTRLEN];
+    int port;
+    int score;
+    int client_ID; 
+    struct paddle_position paddle_position_s; //paddle position server
 }client_info_s;
 
-
+//[0<i<clients_online]
+// m.client_contacting = i;
+//
 typedef struct client_info_t{
     int score;
     paddle_position paddle_position;
@@ -48,7 +50,7 @@ typedef struct client_info_t{
 
 typedef struct message 
 {   
-    
+    int client_contacting;
     int msg_type;   /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/  
     client_info_t cinfo[MAX_CLIENTS]; 
     ball_position_t ball_position;
