@@ -11,7 +11,8 @@
 #include <ncurses.h>
 
 #define SOCK_PORT 4000
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 3 // mudar para 10 later on
+
 #define WINDOW_SIZE 30
 #define PADDLE_SIZE 3
 
@@ -49,7 +50,7 @@ typedef struct client_info_t{
 }client_info_t;
 
 typedef struct message 
-{   
+{  
     int client_contacting;
     int msg_type;   /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/  
     client_info_t cinfo[MAX_CLIENTS]; 

@@ -45,3 +45,11 @@ client if( m.msg_type==3)
     if (key == q/r conditions) and prints with the timer etc... 
 
     if (move_paddle(...))send_paddle_move 
+
+
+func: 
+
+server elimina 1 cliente após 30 sec de inatividade
+
+criar uma opçao para 2 modos de jogo ( paddles movem se no y ou nao )
+modo infinito ??
