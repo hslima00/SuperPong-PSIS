@@ -65,6 +65,14 @@ bool new_paddle (message *m, int adder, int clients_online){
     return FALSE;
 }
 
+void copy_ball_info(ball_position_t* ball_to_overwrite, ball_position_t *ball_to_copy_from){
+    ball_to_overwrite->c= ball_to_copy_from->c;
+    ball_to_overwrite->left_ver_right= ball_to_copy_from->left_ver_right;
+    ball_to_overwrite->up_hor_down= ball_to_copy_from->up_hor_down;
+    ball_to_overwrite->x= ball_to_copy_from->x;
+    ball_to_overwrite->y= ball_to_copy_from->y;
+}
+
 void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_position_t * ball_s){
     ball_position_t next_ball; 
     // simullates if ball will hit de window
@@ -73,10 +81,10 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
     int limite_topo = 1;
     int limite_fundo = WINDOW_SIZE-2;
     int next_y, next_x;
-    next_ball.left_ver_right = m->ball_position.left_ver_right;
-    next_ball.up_hor_down=m->ball_position.up_hor_down;
-    next_ball.x= m->ball_position.x;
-    next_ball.y=m->ball_position.y;
+    next_ball.left_ver_right =ball_s->left_ver_right;
+    next_ball.up_hor_down= ball_s->up_hor_down;
+    next_ball.x=  ball_s->x;
+    next_ball.y= ball_s->y;
 
     if(m->point){
         next_x=m->ball_position.x;
@@ -92,9 +100,6 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
      }else{
         next_ball.x = next_x;
     }
-
-    
-     
     if( next_y == 0 || next_y == WINDOW_SIZE-1){
         next_ball.up_hor_down *= -1;
         next_ball.left_ver_right = rand() % 3 -1;
@@ -119,60 +124,60 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
             }else(next_ball.left_ver_right*=-1);
             
             //se next ball tiver nos limites a direcao q ela ta a andar fa-la ir contra o limite
-            if(next_ball.x == limite_esq) { //esquerda 
+            if(next_ball.y == limite_fundo) {//fundo
+                m -> ball_position.y = WINDOW_SIZE -3;
+                m -> ball_position.up_hor_down = -1;
+                if(next_ball.x == limite_esq) next_ball.left_ver_right=-1;
+                else if(next_ball.x == limite_dir) next_ball.left_ver_right=1; 
+
+            }
+            else if(next_ball.y == limite_topo) {//cima 
+                m -> ball_position.y = 3;
+                m -> ball_position.up_hor_down = 1;
+                if(next_ball.x == limite_esq) next_ball.left_ver_right=-1;
+                else if(next_ball.x == limite_dir) next_ball.left_ver_right=1;   
+            }
+            else if(next_ball.x == limite_esq) { //esquerda 
+                if (next_ball.left_ver_right!=0)next_ball.left_ver_right= 1;
                 if (next_ball.up_hor_down== 0){
                     if(next_ball.y <= WINDOW_SIZE/2)next_ball.up_hor_down=1; //se a bola estiver na metade superior da janela
                     else next_ball.up_hor_down=-1;                           //se "  "  " inferior da janela
-                }
-                next_ball.y += next_ball.up_hor_down;
+                }    
             }           
             else if(next_ball.x == limite_dir) {//dir
+                if (next_ball.left_ver_right!=0)next_ball.left_ver_right= -1;
                 if (next_ball.up_hor_down== 0){
                     if(next_ball.y <= WINDOW_SIZE/2)next_ball.up_hor_down=1; 
                     else next_ball.up_hor_down=-1;
                 }
-                next_ball.y += next_ball.up_hor_down;
             }
-            else if(next_ball.y == limite_fundo) {//fundo
-                m -> ball_position.y = WINDOW_SIZE -4;
-                m -> ball_position.up_hor_down = -1;
-            }
-            else if(next_ball.y == limite_topo) {//cima 
-                m -> ball_position.y = 3;
-                m -> ball_position.up_hor_down = 1;  
-            }
+            
+            next_ball.x += 2 * next_ball.left_ver_right;
+            next_ball.y += 2 * next_ball.up_hor_down;
         }
     }
     //Save position to ball
-    m->ball_position.left_ver_right = next_ball.left_ver_right;
-    m->ball_position.up_hor_down = next_ball.up_hor_down;
-    m->ball_position.x = next_ball.x;
-    m->ball_position.y= next_ball.y;
+    copy_ball_info(&m->ball_position,&next_ball);
     //Save ball position to server
-    ball_s->c= m->ball_position.c;
-    ball_s->left_ver_right = m->ball_position.left_ver_right;
-    ball_s->up_hor_down=m->ball_position.up_hor_down;
-    ball_s->x= m->ball_position.x;
-    ball_s->y=m->ball_position.y;
+    copy_ball_info(ball_s,&m->ball_position);
 
 }
 
+void paddle_move(paddle_position * client_paddle_after_move,paddle_position * server_saved_position){
+    server_saved_position->x = client_paddle_after_move->x;
+    server_saved_position->y = client_paddle_after_move->y;
+}
 //função q chama update ball position -> faz simul ball (todos os clients) -> move ball if valid    
 
-void update_client_info(client_info_s * cinfo_s,message * m, int client_to_update,struct sockaddr_in client_addr, bool remove ){
+void update_client_info(client_info_s * cinfo_s,message * m, int client_to_update,struct sockaddr_in client_addr,bool remove ){
     //falta address 
     int client_to_get_info_from= client_to_update;
-    if (remove) {
-        client_to_get_info_from++;
-        strcpy(cinfo_s[client_to_update].client_address_s,cinfo_s[client_to_get_info_from].client_address_s);
-        cinfo_s[client_to_update].port =cinfo_s[client_to_get_info_from].port;
-    }else {
+    if (!remove)  {
         struct sockaddr_in* ptr_to_addr = (struct sockaddr_in*)&client_addr;
         struct in_addr addr_to_store = ptr_to_addr->sin_addr;
         inet_ntop( AF_INET, &addr_to_store, cinfo_s[client_to_update].client_address_s, INET_ADDRSTRLEN );
         cinfo_s[client_to_update].port = ntohs(client_addr.sin_port);
     }
-    
     cinfo_s[client_to_update].client_ID = m->cinfo[client_to_get_info_from].client_ID;
     cinfo_s[client_to_update].score = m->cinfo[client_to_get_info_from].score;
     cinfo_s[client_to_update].paddle_position_s.length =PADDLE_SIZE;
@@ -180,22 +185,46 @@ void update_client_info(client_info_s * cinfo_s,message * m, int client_to_updat
     cinfo_s[client_to_update].paddle_position_s.y  = m->cinfo[client_to_get_info_from].paddle_position.y;
 }
 
-void add_client(message  * m, struct client_info_s  * cinfo_s, int  clients_online , struct sockaddr_in client_addr){
+void update_message_info(struct client_info_s  * cinfo_s, message  * m,int clients_online){
+    for (int i = 0; i < clients_online; i++)
+    {
+        m->cinfo[i].client_ID = cinfo_s[i].client_ID;
+        m->cinfo[i].paddle_position.length =cinfo_s[i].paddle_position_s.length;
+        m->cinfo[i].paddle_position.x =cinfo_s[i].paddle_position_s.x;
+        m->cinfo[i].paddle_position.y =cinfo_s[i].paddle_position_s.y;
+
+    }
+    for (int i = 0; i < MAX_CLIENTS; i++){
+        m->cinfo[i].score = cinfo_s[i].score;
+    }
+    
+}
+
+void new_client_message(message  * m, ball_position_t ball_s, int clients_online){
+    m->cinfo[clients_online-1].score=0;
+    m->cinfo[clients_online-1].paddle_position.length = PADDLE_SIZE;
+    m->cinfo[clients_online-1].paddle_position.x=WINDOW_SIZE/2;
+    m->cinfo[clients_online-1].paddle_position.y=WINDOW_SIZE-2;
+    m->msg_type = 3; 
+    m->point = TRUE;
+    copy_ball_info(&m->ball_position,&ball_s);
+}
+
+void add_client(message  * m, struct client_info_s  * cinfo_s, int  clients_online , struct sockaddr_in client_addr,ball_position_t ball_s){
     static int ID=0;
     ID++;
     bool valid; 
     int adder=0; //se encontrar um paddle na posição em que cria esta variavel vai incrementar para aumentar o y 
+    m->client_contacting = clients_online -1;
     m->cinfo[m->client_contacting].client_ID = ID; //Atribui ID ao cliente a ser criado 
     /*do{
         adder++;
         valid = new_paddle(m, adder,clients_online);
     }while(!valid);*/
-    m->cinfo[clients_online-1].paddle_position.length = PADDLE_SIZE;
-    m->cinfo[clients_online-1].paddle_position.x=WINDOW_SIZE/2;
-    m->cinfo[clients_online-1].paddle_position.y=WINDOW_SIZE-2;
-    update_client_info( cinfo_s, m,  clients_online-1, client_addr, FALSE);  
-    m->msg_type = 0; //connect message
-    m->point = TRUE;
+    new_client_message(m,ball_s,clients_online);
+    update_client_info( cinfo_s, m,  clients_online-1, client_addr,  FALSE);
+    update_message_info(cinfo_s, m, clients_online);
+        
    
 }
 
@@ -217,22 +246,22 @@ void remove_client(message  * m, struct client_info_s  * cinfo_s ,int  clients_o
     cinfo_s[clients_online].client_ID = 0;
 }
 
-void inicializa_score(message *m )
+void inicializa_score(message *m ,client_info_s * cinfo_s)
 {
     //score dos clientes todos a -1 (to avoid and force condition to print)
     for(int i = 0; i < MAX_CLIENTS; i++){
         m->cinfo[i].score=-1;
+        cinfo_s[i].score=-1;
     }
 }
 
-void first_client_routine(message * m, ball_position_t * ball_s){
-    inicializa_score(m); //inicializa todas as posições do score a 0
+void first_client_routine(message * m, ball_position_t * ball_s, client_info_s * cinfo_s){
+    inicializa_score(m, cinfo_s); //inicializa todas as posições do score a 0
     place_ball_random( &m->ball_position, ball_s); // inicializa a posição da bola
     m->point = TRUE;
     m->msg_type = 2; //send _ball
-    m->client_contacting =0;
-    m->cinfo[0].paddle_position.y=0;
-
+    m->cinfo[0].paddle_position.y=WINDOW_SIZE -2;
+    m->cinfo[0].paddle_position.x=WINDOW_SIZE/2;
 }
 
 int main()
@@ -280,10 +309,9 @@ int main()
                 clients_online ++;
                 if (clients_online == 1)
                 { //STEP C If this client is the first one to connect,the server sends as reply a Send_ball message (step C).
-                    first_client_routine(&m,&ball_s);
+                    first_client_routine(&m,&ball_s,cinfo_s);
                 }
-                //board_update();
-                add_client(&m, cinfo_s, clients_online, client_addr);
+                add_client(&m, cinfo_s, clients_online, client_addr, ball_s);
                 mvwprintw(my_win, 2, 1, "%d connected at the moment", clients_online);
                 wrefresh(my_win);
                 
@@ -294,67 +322,30 @@ int main()
          case 1:
             remove_client(&m,cinfo_s,clients_online); //remove cliente e limpa os seus dados
             clients_online --;
-           /* for (int j = active_client; j < clients_online; j++)
-            { //shift left
-                m.score[j][1] = m.score[j + 1];
-                m.score[j][2] = m.score[j + 1];
-                clients_info[j].client_address.sin_addr.s_addr = clients_info[j+1].client_address.sin_addr.s_addr;
-                clients_info[j].client_address.sin_family = clients_info[j+1].client_address.sin_family;
-                clients_info[j].client_address.sin_port = clients_info[j+1].client_address.sin_port;
-                //clients_address[j].sin_zero=clients_address[j+1].sin_zero;
-            }
-            m.score[cinfo_s.clients_online][1] = -1; //mete ultima posição a -1(cliente removido)
-            m.score[cinfo_s.clients_online][2] = -1;*/
-            /*clients_online--;
-            
-            for (int i = 0; i <clients_online; i++)
-            { // updatescoreboard for players
-                sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
-            }
-            m.msg_type = 2;
-            if (m.client_contacting + 1 == clients_online)
-                active_client = 0;
-            sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);*/
+            mvwprintw(my_win, 2, 1, "%d connected at the moment", clients_online);
+            wrefresh(my_win);
             break; 
 
         case 2: /*paddle_move*/
             // 1- O cliente vai mandar uma mensagem do tipo Paddle Move.
-            // 2- O server var processar a info que o cliente manda e manda o board_update();
-            if (m.point){
-                //m.score[m.client_contacting][1]++;------- ver se atualiza logo tbm para o client em questão
-                m.cinfo[m.client_contacting].score ++;
-            }
-            update_client_info(cinfo_s,&m,m.client_contacting,client_addr,FALSE);
+            // 2- O server var processar a info que o cliente manda e manda o board_update();                
+            for (int i = 0; i < clients_online; i++){
+                if (m.cinfo[i].client_ID == cinfo_s[i].client_ID)m.client_contacting = i;
+            } 
+            paddle_move(&m.cinfo[m.client_contacting].paddle_position,&cinfo_s[m.client_contacting].paddle_position_s);
             m.msg_type = 3;
             move_ball_counter ++;
-            if (move_ball_counter == clients_online){
+            if ((move_ball_counter == clients_online) ||m.point){
                 move_ball(&m, cinfo_s, clients_online, &ball_s);
                 move_ball_counter = 0;
             }
-            for (int i = 0; i < clients_online; i++)// atenção verificar há coisas q vão mudar bastante agora..
+            update_message_info(cinfo_s, &m, clients_online);
+            sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
+            /*for (int i = 0; i < clients_online; i++)// atenção verificar há coisas q vão mudar bastante agora..
             {
-                    sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
-            }
-            break;
-
-        case 3:
-            /*When the server receives the Move_ball message, it must forward the same ball
-                movement to all other connected clients (step L), so that every client can update the
-                corresponding screen to show the ball in the new position.*/
-            //MOVE_BALL (STEP L)
-            //Updates ball position to all clients that aren't in Play State
-            if (m.point)
-                m.cinfo[m.client_contacting].score++;
-            m.msg_type = 3;
-           /* for (int i = 0; i < clients_online; i++)
-            {
-                if (i != active_client)
                     sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
             }*/
-            m.msg_type = 2;
-            sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
-            break;
-       
+            break;      
         }
     }
     close(sock_fd);

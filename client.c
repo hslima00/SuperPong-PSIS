@@ -80,9 +80,14 @@ void move_paddle (message * m, int direction, WINDOW *message_win ){
         }
         else mvwprintw(message_win, 3,1,"Hitting BOX limit\0"); 
     }
-    m->point = (( ( (m->ball_position.x <=m->cinfo[m->client_contacting].paddle_position.x + PADDLE_SIZE) &&       //extremidade direita do paddle
-            m->cinfo[m->client_contacting].paddle_position.x - PADDLE_SIZE) ) &&          //extremidade esquerda do paddle 
+    m->point = (( ( (m->ball_position.x <= m->cinfo[m->client_contacting].paddle_position.x + PADDLE_SIZE) &&       //extremidade direita do paddle
+            (m->ball_position.x >= m->cinfo[m->client_contacting].paddle_position.x - PADDLE_SIZE)) ) &&          //extremidade esquerda do paddle 
             (m->cinfo[m->client_contacting].paddle_position.y == m->ball_position.y));                           //estiver entre as extremidades do paddle e no mesmo y 
+    if ((m->point) && (m->ball_position.up_hor_down== 0)){
+        if (direction == KEY_DOWN || direction == 's') m->ball_position.up_hor_down = -1;
+        else if (direction == KEY_UP || direction == 'w')m->ball_position.up_hor_down = 1;
+    }
+
     wrefresh(message_win);
 }
 
@@ -98,29 +103,30 @@ void draw_ball(WINDOW *my_win, ball_position_t * ball, bool draw){
     wrefresh(my_win);
 }
 
-void update_scoreboard(client_info_t * cinfo, WINDOW * score_win, int my_ID){
+void update_scoreboard(client_info_t * cinfo, WINDOW * score_win, int client_contacting){
     int temp_score[MAX_CLIENTS][2], temp_max = 0, k = 0 , clt_on_score = -1;
     
     for (int j = 0; j < MAX_CLIENTS; j++){
         temp_score[j][1] = -1;
-        mvwprintw(score_win, j+2 , 1 ,"                        \0"); 
+        mvwprintw(score_win, j+2 , 1 ,"                      \0"); 
+        wrefresh(score_win);
         if(cinfo[clt_on_score +1 ].score!= -1){
             ++ clt_on_score;
-            temp_score[clt_on_score][1] = cinfo[clt_on_score].score; 
-            temp_score[clt_on_score][2] = cinfo[clt_on_score].client_ID;
+            temp_score[clt_on_score][0] = cinfo[clt_on_score].score; 
+            temp_score[clt_on_score][1] = cinfo[clt_on_score].client_ID;
         } 
     }
     for (int l = 0; l <= clt_on_score; l++){
         for (int j = clt_on_score ;j >= 0; j--){
-            if (temp_score[j][1] >= temp_max ) {
-                temp_max = temp_score[j][1];
+            if (temp_score[j][0] >= temp_max ) {
+                temp_max = temp_score[j][0];
                 k = j;
             }
         } 
-        if(temp_score[k][2] == my_ID)mvwprintw(score_win, l+2 , 1 ,"-->%dº | PLAYER %d |%d\0 ", l+1 , temp_score[k][2] ,temp_score[k][1]);
-        else mvwprintw(score_win, l+2 , 3 ," %dº | PLAYER %d |%d\0 ", l+1 , temp_score[k][2] ,temp_score[k][1]);
+        if(temp_score[k][1] == cinfo[client_contacting].client_ID)mvwprintw(score_win, l+2 , 1 ,"-->%dº | PLAYER %d |%d\0 ", l+1 , temp_score[k][1] ,temp_score[k][0]);
+        else mvwprintw(score_win, l+2 , 3 ," %dº | PLAYER %d |%d\0 ", l+1 , temp_score[k][1] ,temp_score[k][0]);
         wrefresh(score_win);
-        temp_score[k][1] = -1;
+        temp_score[k][0] = -1;
         temp_max = 0;
     } 
     
@@ -164,8 +170,8 @@ void start_play_state(WINDOW * my_win,  message * m ,WINDOW * message_win, paddl
     wrefresh(message_win);
 }
 
-void update_board(message *m, WINDOW * score_win, WINDOW * my_win,paddle_position *paddles,ball_position_t *previous_ball ,int my_ID){
-    update_scoreboard(m->cinfo, score_win, my_ID);
+void update_board(message *m, WINDOW * score_win, WINDOW * my_win,paddle_position *paddles,ball_position_t *previous_ball ){
+    update_scoreboard(m->cinfo, score_win,m->client_contacting);
     update__all_paddles_and_ball(my_win,m,paddles,FALSE,previous_ball);
 }
 
@@ -186,8 +192,6 @@ int main()//int argc, char *argv[])
     struct sockaddr_in server_addr;
     bool sucess_connect = TRUE;
     criar_socket(&sock_fd);
-    
-    int my_ID;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(SOCK_PORT);
     if( inet_pton(AF_INET, adress_keyboard, &server_addr.sin_addr) < 1){
@@ -222,12 +226,11 @@ int main()//int argc, char *argv[])
         else if (sucess_connect){ 
             create_windows(my_win,message_win, score_win, controls_and_info);
             start_play_state(my_win, &m, message_win, paddles, &previous_ball);
-            my_ID = m.cinfo[m.client_contacting].client_ID;
-            update_scoreboard(m.cinfo, score_win, my_ID);
+            update_scoreboard(m.cinfo, score_win, m.client_contacting);
             sucess_connect = FALSE;
             }
-        else update_board(&m, score_win, my_win,paddles,&previous_ball,my_ID);
-        m.msg_type = 3;
+        else update_board(&m, score_win, my_win,paddles,&previous_ball);
+        m.msg_type = 2;
         do{  
             key = wgetch(my_win);
             condition = (key == KEY_LEFT ||  KEY_RIGHT || KEY_UP || KEY_DOWN ||  'a'|| 's' ||'d' ||  'w');
