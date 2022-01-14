@@ -1,5 +1,5 @@
 #include "header.h"
-//Creates and binds socket
+/* creates the socket to with the correct type (AF_INET) use and checks if the creation was sucessful */ 
 void create_socket(int *sock_fd)
 {
     *sock_fd = socket(AF_INET, SOCK_DGRAM, 0); //cria socket
@@ -9,7 +9,7 @@ void create_socket(int *sock_fd)
         exit(-1);
     }
 }
-//Self-explanatory
+/*initializes ncurses*/
 void initialize_ncurses()
 {
     initscr();
@@ -17,15 +17,16 @@ void initialize_ncurses()
     keypad(stdscr, TRUE);
     noecho();
 }
-//Creates a window and draws a border
+
+/*Creates a window and draws a border*/
 void create_window(WINDOW *my_win)
 {
-    
     box(my_win, 0, 0);
     wrefresh(my_win);
     keypad(my_win, true);
 }
 
+/*copies ball information from um ball_position_t to another*/
 void copy_ball_info(ball_position_t* ball_to_overwrite, ball_position_t *ball_to_copy_from){
     ball_to_overwrite->c= ball_to_copy_from->c;
     ball_to_overwrite->left_ver_right= ball_to_copy_from->left_ver_right;
@@ -33,7 +34,8 @@ void copy_ball_info(ball_position_t* ball_to_overwrite, ball_position_t *ball_to
     ball_to_overwrite->x= ball_to_copy_from->x;
     ball_to_overwrite->y= ball_to_copy_from->y;
 }
-//At the start of the game places the ball in a random position
+
+/*At the start of the game places the ball in a random position*/
 void place_ball_random(ball_position_t *ball,ball_position_t *ball_s )
 {
     ball->x = rand() % WINDOW_SIZE;
@@ -41,26 +43,32 @@ void place_ball_random(ball_position_t *ball,ball_position_t *ball_s )
     ball->c ='o';
     ball->up_hor_down = rand() % 3 - 1;    //  -1 up, 1 - down
     ball->left_ver_right = rand() % 3 - 1; // 0 vertical, -1 left, 1 right
-    //initialize ball position on server
-    copy_ball_info(ball_s, ball);
+    copy_ball_info(ball_s, ball);//initialize ball position on server
 }
 
-bool new_paddle (message *m, int adder, int clients_online){ 
-    paddle_position simul_paddle; 
-    int i = 0;
-    simul_paddle.length = PADDLE_SIZE;
+/*initializes  paddle position making sure it's a valid position*/
+bool new_paddle (message *m, int clients_online){ 
+    bool invalid_paddle= FALSE;// control variable to check if valid paddle
+    bool condition_1=FALSE, condition_2=FALSE;//control variables to check conditions for valid move
+    paddle_position simul_paddle;// simulated paddle to assess if the move is valid
     simul_paddle.x = WINDOW_SIZE/2;
-    simul_paddle.y = WINDOW_SIZE-2 - (clients_online + adder);
-    /*if ((WINDOW_SIZE-2 + clients_online)%2){ 
-        simul_paddle.y = WINDOW_SIZE-2 - clients_online - adder;
-
-    }else{
-        simul_paddle.y = -2 + clients_online +adder; 
-    }*/
+    simul_paddle.y = WINDOW_SIZE-2;
+    int adder=0;
     do{
-        if(simul_paddle.y == m->cinfo[i].paddle_position.y)return TRUE; // se encontrar um paddle dá return 1  
-        i++;
-    }while (i != clients_online);
+        adder ++;
+        simul_paddle.y = WINDOW_SIZE-2 - adder;
+        for (int i =0 ; i<=clients_online; i++){
+            if (simul_paddle.y == m->cinfo[i].paddle_position.y){
+                condition_1 = ((simul_paddle.x+ PADDLE_SIZE<=m->cinfo[i].paddle_position.x + PADDLE_SIZE )&& //right edge simul_paddle <= right edge paddle[i] AND
+                        (simul_paddle.x +PADDLE_SIZE  >=m->cinfo[i].paddle_position.x - PADDLE_SIZE));//right edge simul_paddle >= left edge paddle[i]
+                
+                condition_2 =((simul_paddle.x - PADDLE_SIZE<=m->cinfo[i].paddle_position.x + PADDLE_SIZE ) &&//left edge  simul_paddle <= right edgepaddle[i] AND
+                            (simul_paddle.x -PADDLE_SIZE  >=m->cinfo[i].paddle_position.x - PADDLE_SIZE));//left edge  simul_paddle >= left edge  paddle[i]
+                
+                invalid_paddle = ((condition_1  || condition_2) );  // if on the same height and touching paddle 
+            }
+        }
+    }while (invalid_paddle);
     
     //se não encontrar paddle já criada, entao vai passar as cenas do paddle simulado para o cliente 
     m->cinfo[clients_online-1].paddle_position.length = PADDLE_SIZE;
@@ -70,10 +78,9 @@ bool new_paddle (message *m, int adder, int clients_online){
 }
 
 
-
+/*moves the ball  simulating if the next position is valid and if not simulating bouncing effect on paddles or walls*/
 void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_position_t * ball_s){
-    ball_position_t next_ball; 
-    // simullates if ball will hit de window
+    ball_position_t next_ball; // simulates if ball will hit de window
     int limite_esq = 1; 
     int limite_dir = WINDOW_SIZE-2;
     int limite_topo = 1;
@@ -84,10 +91,10 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
     next_ball.x=  ball_s->x;
     next_ball.y= ball_s->y;
 
-    if(m->point){
+    if(m->point){//if m-> point == TRUE means the ball is already hitting a paddle so we will just move the ball 
         next_x=ball_s->x;
         next_y=ball_s->y;
-    }else{
+    }else{// if move ball happend because we had enought moves  
         next_x =ball_s->x + ball_s->left_ver_right;
         next_y =ball_s->y + ball_s->up_hor_down;
     }
@@ -107,42 +114,41 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
     
     bool hit;
     //check if ball will colide with any paddle
-    for(int j =0; j<clients_online; j++){                                               //se a proxima bola estiver entre:
-        hit =( ( (next_ball.x <= cinfo_s[j].paddle_position_s.x + PADDLE_SIZE) &&       //extremidade direita do paddle
-            (next_ball.x >= cinfo_s[j].paddle_position_s.x - PADDLE_SIZE) ) &&          //extremidade esquerda do paddle 
-            (cinfo_s[j].paddle_position_s.y == next_ball.y));                           //estiver entre as extremidades do paddle e no mesmo y 
+    for(int j =0; j<clients_online; j++){                                               //if ball is between
+        hit =( ( (next_ball.x <= cinfo_s[j].paddle_position_s.x + PADDLE_SIZE) &&       //paddle right edge AND
+            (next_ball.x >= cinfo_s[j].paddle_position_s.x - PADDLE_SIZE) ) &&          //paddle left edge
+            (cinfo_s[j].paddle_position_s.y == next_ball.y));                           // betwen the edges and on the same y(height) 
 
         if(hit){
-            //atualizar score no server e na msg 
+            // updates score value on server and on the message
             m->cinfo[j].score++;
             cinfo_s[j].score++;
-            m->point=TRUE; // -> força atulizar o score no client 
-            if(next_ball.up_hor_down == 1 || next_ball.up_hor_down==-1){    //se a bola estiver a vir para baixo ou para cima
-                next_ball.up_hor_down*=-1;  //muda de direção
-            }else(next_ball.left_ver_right*=-1);
+            if(next_ball.up_hor_down == 1 || next_ball.up_hor_down==-1){    //if ball is going up or down
+                next_ball.up_hor_down*=-1;  //changes vertical movement direction
+            }else(next_ball.left_ver_right*=-1);// if horizontal changes horizontal direction
             
-            //se next ball tiver nos limites a direcao q ela ta a andar fa-la ir contra o limite
-            if(next_ball.y == limite_fundo) {//fundo
+            //if the next ball is hitting the box limit makes it bounce accordingly
+            if(next_ball.y == limite_fundo) {//bottom
                 m -> ball_position.y = WINDOW_SIZE -3;
                 m -> ball_position.up_hor_down = -1;
                 if(next_ball.x == limite_esq) next_ball.left_ver_right=-1;
                 else if(next_ball.x == limite_dir) next_ball.left_ver_right=1; 
 
             }
-            else if(next_ball.y == limite_topo) {//cima 
+            else if(next_ball.y == limite_topo) {//top
                 m -> ball_position.y = 3;
                 m -> ball_position.up_hor_down = 1;
                 if(next_ball.x == limite_esq) next_ball.left_ver_right=-1;
                 else if(next_ball.x == limite_dir) next_ball.left_ver_right=1;   
             }
-            else if(next_ball.x == limite_esq) { //esquerda 
+            else if(next_ball.x == limite_esq) { //left 
                 if (next_ball.left_ver_right!=0)next_ball.left_ver_right= 1;
                 if (next_ball.up_hor_down== 0){
                     if(next_ball.y <= WINDOW_SIZE/2)next_ball.up_hor_down=1; //se a bola estiver na metade superior da janela
                     else next_ball.up_hor_down=-1;                           //se "  "  " inferior da janela
                 }    
             }           
-            else if(next_ball.x == limite_dir) {//dir
+            else if(next_ball.x == limite_dir) {//right
                 if (next_ball.left_ver_right!=0)next_ball.left_ver_right= -1;
                 if (next_ball.up_hor_down== 0){
                     if(next_ball.y <= WINDOW_SIZE/2)next_ball.up_hor_down=1; 
@@ -161,16 +167,17 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
 
 }
 
+/*updates paddle information on server after a paddle move message from client*/
 void paddle_move(paddle_position * client_paddle_after_move,paddle_position * server_saved_position){
     server_saved_position->x = client_paddle_after_move->x;
     server_saved_position->y = client_paddle_after_move->y;
 }
-//função q chama update ball position -> faz simul ball (todos os clients) -> move ball if valid    
-
+   
+/*function to update server information from a specific client when necessary*/
 void update_client_info(client_info_s * cinfo_s,message * m, int client_to_update,struct sockaddr_in client_addr,bool remove ){
     //falta address 
     int client_to_get_info_from= client_to_update;
-    if (!remove)  {
+    if (!remove)  {// if adding a new client gets the address and saves it 
         struct sockaddr_in* ptr_to_addr = (struct sockaddr_in*)&client_addr;
         struct in_addr addr_to_store = ptr_to_addr->sin_addr;
         inet_ntop( AF_INET, &addr_to_store, cinfo_s[client_to_update].client_address_s, INET_ADDRSTRLEN );
@@ -183,6 +190,7 @@ void update_client_info(client_info_s * cinfo_s,message * m, int client_to_updat
     cinfo_s[client_to_update].paddle_position_s.y  = m->cinfo[client_to_get_info_from].paddle_position.y;
 }
 
+/*updates the information on the message from server data so client can have up to date information on all other clients and on the ball*/
 void update_message_info(client_info_s  * cinfo_s, message  * m,int clients_online, ball_position_t ball_s){
     for (int i = 0; i < clients_online; i++)
     {
@@ -199,38 +207,28 @@ void update_message_info(client_info_s  * cinfo_s, message  * m,int clients_onli
     
 }
 
-void new_client_message(message  * m, ball_position_t ball_s, int clients_online){
-    m->cinfo[m->client_contacting].score=0;
-    m->cinfo[m->client_contacting].paddle_position.length = PADDLE_SIZE;
-    m->cinfo[m->client_contacting].paddle_position.x=WINDOW_SIZE/2;
-    m->cinfo[m->client_contacting].paddle_position.y=WINDOW_SIZE-2;
-    m->msg_type = 3; 
-    m->point = TRUE;
-    copy_ball_info(&m->ball_position,&ball_s);
-}
-
+/*initializes the message for a new client making sure it to put all is data on the message corresponding position*/
 void add_client(message  * m, struct client_info_s  * cinfo_s, int  clients_online , struct sockaddr_in client_addr,ball_position_t ball_s){
     static int ID=0;
     ID++;
-    bool valid; 
-    int adder=0; //se encontrar um paddle na posição em que cria esta variavel vai incrementar para aumentar o y 
-    m->client_contacting = clients_online -1;  //ISTO DEVE ESTAR MAL PPBLY
-    m->cinfo[m->client_contacting].client_ID = ID; //Atribui ID ao cliente a ser criado 
-    /*do{
-        adder++;
-        valid = new_paddle(m, adder,clients_online);
-    }while(!valid);*/
-    new_client_message(m,ball_s,clients_online);
+    m->client_contacting = clients_online -1;  //initializes client_contacting
+    m->cinfo[m->client_contacting].client_ID = ID; //puts the client  ID on the message
+    m->cinfo[m->client_contacting].score=0;
+    m->msg_type = 3; 
+    m->point = TRUE;
+    copy_ball_info(&m->ball_position,&ball_s);
+    new_paddle(m,clients_online-1);
     update_client_info( cinfo_s, m,  clients_online-1, client_addr,  FALSE);
     update_message_info(cinfo_s, m, clients_online, ball_s);
         
    
 }
+
 //Removes clients and wipes its data from server & message
 void remove_client(message  * m, struct client_info_s  * cinfo_s ,int  clients_online)
 {
-    struct sockaddr_in nothing;
-    //ciclo que procura o address do gajo que se está a disconectar
+    struct sockaddr_in nothing;// an empty sock_addr_in, because it's not needed in the update_client_info
+    //cicle to remove one client
     for (int j = m->client_contacting; j < clients_online; j++)
     {
         m->cinfo[j].score= m->cinfo[j+1].score;
@@ -239,28 +237,24 @@ void remove_client(message  * m, struct client_info_s  * cinfo_s ,int  clients_o
         cinfo_s[j].port = cinfo_s[j+1].port;
         update_client_info(cinfo_s,m,j,nothing,TRUE);
     }
-    m->cinfo[clients_online].score= -1; //mete ultima posição a -1(cliente removido)
-    m->cinfo[clients_online].client_ID = 0;
     cinfo_s[clients_online].score = -1;
     cinfo_s[clients_online].client_ID = 0;
 }
 
-void inicializa_score(message *m ,client_info_s * cinfo_s)
+/*initializes scores on server and message*/
+void inicialize_score(message *m ,client_info_s * cinfo_s)
 {
-    //score dos clientes todos a -1 (to avoid and force condition to print)
+    //initializes scores  = -1(to avoid and force condition to print)
     for(int i = 0; i < MAX_CLIENTS; i++){
         m->cinfo[i].score=-1;
         cinfo_s[i].score=-1;
     }
 }
 
+/*routine for first client */
 void first_client_routine(message * m, ball_position_t * ball_s, client_info_s * cinfo_s){
-    inicializa_score(m, cinfo_s); //inicializa todas as posições do score a 0
+    inicialize_score(m, cinfo_s); //inicializa todas as posições do score a 0
     place_ball_random( &m->ball_position, ball_s); // inicializa a posição da bola
-    m->point = TRUE;
-    m->msg_type = 2; //send _ball
-    m->cinfo[0].paddle_position.y=WINDOW_SIZE -2;
-    m->cinfo[0].paddle_position.x=WINDOW_SIZE/2;
 }
 
 int main()
@@ -328,6 +322,9 @@ int main()
             break; 
 
         case 2: //Paddle_move
+            for (int i =0; i< clients_online;i++){
+                if (m.cinfo[m.client_contacting].client_ID==cinfo_s[i].client_ID)m.client_contacting=i;
+            }
             paddle_move(&m.cinfo[m.client_contacting].paddle_position,&cinfo_s[m.client_contacting].paddle_position_s);
             m.msg_type = 3;
             move_ball_counter ++;
@@ -348,12 +345,7 @@ int main()
                 m.cinfo[i].score = cinfo_s[i].score;
             }
             copy_ball_info(&m.ball_position,&ball_s);
-            //m.cinfo->client_ID=cinfo_s->client_ID
             sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
-            /*for (int i = 0; i < clients_online; i++)// atenção verificar há coisas q vão mudar bastante agora..
-            {
-                    sendto(sock_fd, &m, sizeof(m), 0, (const struct sockaddr *)&client_addr, client_addr_size);
-            }*/
             break;      
         }
     }
