@@ -119,8 +119,8 @@ void move_paddle (message * m, int direction, WINDOW *message_win ){
             (m->cinfo[m->client_contacting].paddle_position.y == m->ball_position.y));                           //if between both edges and on the same y  == hitting ball
 
     if ((m->point) && (m->ball_position.up_hor_down== 0)){// if hitting ball and ball is horizontal
-        if (direction == KEY_DOWN || direction == 's') m->ball_position.up_hor_down = -1;//if moved up forces ball to go up
-        else if (direction == KEY_UP || direction == 'w')m->ball_position.up_hor_down = 1;//if  moved down forces ball to go down
+        if (direction == KEY_DOWN || direction == 's') m->ball_position.up_hor_down = 1;//if moved up forces ball to go up
+        else if (direction == KEY_UP || direction == 'w')m->ball_position.up_hor_down = -1;//if  moved down forces ball to go down
     }
     wrefresh(message_win);
 }
@@ -191,6 +191,9 @@ void copy_ball_info(ball_position_t* ball_to_overwrite, ball_position_t *ball_to
 
 /*deletes all previous paddles and the previous ball and redraws everything after updating their position*/
 void update__all_paddles_and_ball(WINDOW *my_win, message * m, paddle_position * paddles, bool start,ball_position_t *previous_ball){
+    if(!start)draw_ball(my_win, previous_ball,FALSE);// deletes the ball unless it's the first call 
+    copy_ball_info(previous_ball,&m->ball_position);// updates ball info on the client
+    draw_ball(my_win, previous_ball,TRUE);// draws ball in new position
     for (int j = 0; j < MAX_CLIENTS; j++){// runs for all paddles
         if(m->cinfo[j].score!= -1){
             if(!start){// makes sure that if it's the first call drawing the padles not to delete any because the information on them would be trash
@@ -204,9 +207,7 @@ void update__all_paddles_and_ball(WINDOW *my_win, message * m, paddle_position *
         }
         else break;
     }
-    if(!start)draw_ball(my_win, previous_ball,FALSE);// deletes the ball unless it's the first call 
-    copy_ball_info(previous_ball,&m->ball_position);// updates ball info on the client
-    draw_ball(my_win, previous_ball,TRUE);// draws ball in new position
+    
 }
 
 /*routine that writes PLAY STATE  and makes calls the function to draw all paddles making sure it knows it's the first call*/

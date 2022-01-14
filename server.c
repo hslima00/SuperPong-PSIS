@@ -52,12 +52,11 @@ bool new_paddle (message *m, int clients_online){
     bool condition_1=FALSE, condition_2=FALSE;//control variables to check conditions for valid move
     paddle_position simul_paddle;// simulated paddle to assess if the move is valid
     simul_paddle.x = WINDOW_SIZE/2;
-    simul_paddle.y = WINDOW_SIZE-2;
     int adder=0;
     do{
         adder ++;
         simul_paddle.y = WINDOW_SIZE-2 - adder;
-        for (int i =0 ; i<=clients_online; i++){
+        for (int i = 0 ; i <= clients_online; i++){
             if (simul_paddle.y == m->cinfo[i].paddle_position.y){
                 condition_1 = ((simul_paddle.x+ PADDLE_SIZE<=m->cinfo[i].paddle_position.x + PADDLE_SIZE )&& //right edge simul_paddle <= right edge paddle[i] AND
                         (simul_paddle.x +PADDLE_SIZE  >=m->cinfo[i].paddle_position.x - PADDLE_SIZE));//right edge simul_paddle >= left edge paddle[i]
@@ -67,13 +66,14 @@ bool new_paddle (message *m, int clients_online){
                 
                 invalid_paddle = ((condition_1  || condition_2) );  // if on the same height and touching paddle 
             }
+            if(invalid_paddle) break;
         }
     }while (invalid_paddle);
     
     //se não encontrar paddle já criada, entao vai passar as cenas do paddle simulado para o cliente 
-    m->cinfo[clients_online-1].paddle_position.length = PADDLE_SIZE;
-    m->cinfo[clients_online-1].paddle_position.x=simul_paddle.x;
-    m->cinfo[clients_online-1].paddle_position.y=simul_paddle.y;
+    m->cinfo[clients_online].paddle_position.length = PADDLE_SIZE;
+    m->cinfo[clients_online].paddle_position.x=simul_paddle.x;
+    m->cinfo[clients_online].paddle_position.y=simul_paddle.y;
     return FALSE;
 }
 
@@ -81,37 +81,36 @@ bool new_paddle (message *m, int clients_online){
 /*moves the ball  simulating if the next position is valid and if not simulating bouncing effect on paddles or walls*/
 void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_position_t * ball_s){
     ball_position_t next_ball; // simulates if ball will hit de window
-    int limite_esq = 1; 
+    int limite_esq = 2; 
     int limite_dir = WINDOW_SIZE-2;
-    int limite_topo = 1;
+    int limite_topo = 2;
     int limite_fundo = WINDOW_SIZE-2;
     int next_y, next_x;
-    next_ball.left_ver_right =ball_s->left_ver_right;
-    next_ball.up_hor_down= ball_s->up_hor_down;
-    next_ball.x=  ball_s->x;
-    next_ball.y= ball_s->y;
+    next_ball.left_ver_right =m->ball_position.left_ver_right;
+    next_ball.up_hor_down= m->ball_position.up_hor_down;
+    next_ball.x=  m->ball_position.x;
+    next_ball.y= m->ball_position.y;
 
     if(m->point){//if m-> point == TRUE means the ball is already hitting a paddle so we will just move the ball 
         next_x=ball_s->x;
         next_y=ball_s->y;
-    }else{// if move ball happend because we had enought moves  
-        next_x =ball_s->x + ball_s->left_ver_right;
-        next_y =ball_s->y + ball_s->up_hor_down;
+        
+    }else{// if move ball happens because we had enought moves  
+        next_x =ball_s->x + m->ball_position.left_ver_right;
+        next_y =ball_s->y + m->ball_position.up_hor_down;
     }
-   
     if( next_x == 0 || next_x == WINDOW_SIZE-1){
-        next_ball.up_hor_down = rand() % 3 -1 ;
-        next_ball.left_ver_right *= -1;
-     }else{
-        next_ball.x = next_x;
-    }
-    if( next_y == 0 || next_y == WINDOW_SIZE-1){
-        next_ball.up_hor_down *= -1;
-        next_ball.left_ver_right = rand() % 3 -1;
-    }else{
-        next_ball.y = next_y;
-    }
-    
+            next_ball.up_hor_down = rand() % 3 -1 ;
+            next_ball.left_ver_right *= -1;
+        }else{
+            next_ball.x = next_x;
+        }
+        if( next_y == 0 || next_y == WINDOW_SIZE-1){
+            next_ball.up_hor_down *= -1;
+            next_ball.left_ver_right = rand() % 3 -1;
+        }else{
+            next_ball.y = next_y;
+        }
     bool hit;
     //check if ball will colide with any paddle
     for(int j =0; j<clients_online; j++){                                               //if ball is between
@@ -129,15 +128,15 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
             
             //if the next ball is hitting the box limit makes it bounce accordingly
             if(next_ball.y == limite_fundo) {//bottom
-                m -> ball_position.y = WINDOW_SIZE -3;
-                m -> ball_position.up_hor_down = -1;
+                next_ball.y = WINDOW_SIZE -3;
+                next_ball.up_hor_down = -1;
                 if(next_ball.x == limite_esq) next_ball.left_ver_right=-1;
                 else if(next_ball.x == limite_dir) next_ball.left_ver_right=1; 
 
             }
             else if(next_ball.y == limite_topo) {//top
-                m -> ball_position.y = 3;
-                m -> ball_position.up_hor_down = 1;
+                next_ball.y = 3;
+                next_ball.up_hor_down = 1;
                 if(next_ball.x == limite_esq) next_ball.left_ver_right=-1;
                 else if(next_ball.x == limite_dir) next_ball.left_ver_right=1;   
             }
@@ -149,7 +148,7 @@ void move_ball(message *m, client_info_s *cinfo_s, int clients_online, ball_posi
                 }    
             }           
             else if(next_ball.x == limite_dir) {//right
-                if (next_ball.left_ver_right!=0)next_ball.left_ver_right= -1;
+                if (next_ball.left_ver_right!=0)next_ball.left_ver_right=-1;
                 if (next_ball.up_hor_down== 0){
                     if(next_ball.y <= WINDOW_SIZE/2)next_ball.up_hor_down=1; 
                     else next_ball.up_hor_down=-1;
@@ -255,6 +254,8 @@ void inicialize_score(message *m ,client_info_s * cinfo_s)
 void first_client_routine(message * m, ball_position_t * ball_s, client_info_s * cinfo_s){
     inicialize_score(m, cinfo_s); //inicializa todas as posições do score a 0
     place_ball_random( &m->ball_position, ball_s); // inicializa a posição da bola
+    m->cinfo[0].paddle_position.x=WINDOW_SIZE/2;
+    m->cinfo[0].paddle_position.y=WINDOW_SIZE -2;
 }
 
 int main()

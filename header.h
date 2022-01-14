@@ -11,7 +11,7 @@
 #include <ncurses.h>
 
 #define SOCK_PORT 4000
-#define MAX_CLIENTS 3 // mudar para 10 later on
+#define MAX_CLIENTS 10
 
 #define WINDOW_SIZE 30
 #define PADDLE_SIZE 3
