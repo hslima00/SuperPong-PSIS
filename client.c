@@ -169,13 +169,16 @@ void update_board(message *m, WINDOW * score_win, WINDOW * my_win,paddle_positio
     update__all_paddles_and_ball(my_win,m,paddles,FALSE,previous_ball);
 }
 
-int main(int argc, char *argv[])
+int main()//int argc, char *argv[])
 {
-    if (argc < 2) {
+    /*if (argc < 2) {
         printf("to run client supply the server adress after ./CLIENT.proj \n");
         exit(0);
-    }
-    char* adress_keyboard=argv[1];
+    } 
+    //Var declaration
+    char* adress_keyboard='127.0.0.1';argv[1];*/
+    char adress_keyboard[50];
+    strcpy(adress_keyboard,"127.0.0.1\0");
     int sock_fd , condition, key = -1;      
     message m;
     paddle_position paddles[MAX_CLIENTS];
