@@ -89,12 +89,13 @@ void move_paddle (message * m, int direction, WINDOW *message_win ){
 void draw_ball(WINDOW *my_win, ball_position_t * ball, bool draw){
     int ch;
     if(draw){
-        ch = ball->c;
+        ch = 'o';
     }else{
         ch = ' ';
     }
     wmove(my_win, ball->y, ball->x);
     waddch(my_win,ch);
+    wrefresh(my_win);
 }
 
 void update_scoreboard(client_info_t * cinfo, WINDOW * score_win, int my_ID){
@@ -128,9 +129,10 @@ void update_scoreboard(client_info_t * cinfo, WINDOW * score_win, int my_ID){
 void update_paddle(WINDOW *my_win, message * m, paddle_position * paddle, int key,WINDOW *message_win){
     draw_paddle(my_win,paddle,FALSE,TRUE);
     move_paddle (m, key, message_win);
-    draw_paddle(my_win,paddle,TRUE,TRUE);
     paddle->x =m->cinfo[m->client_contacting].paddle_position.x;
-    paddle->y =m->cinfo[m->client_contacting].paddle_position.y;  
+    paddle->y =m->cinfo[m->client_contacting].paddle_position.y; 
+    draw_paddle(my_win,paddle,TRUE,TRUE);
+     
 }
 
 void update__all_paddles_and_ball(WINDOW *my_win, message * m, paddle_position * paddles, bool start,ball_position_t *previous_ball){
@@ -138,25 +140,22 @@ void update__all_paddles_and_ball(WINDOW *my_win, message * m, paddle_position *
         if(m->cinfo[j].score!= -1){
             if(!start){
                 draw_paddle(my_win , &paddles[j], FALSE,FALSE);
-                draw_ball(my_win, previous_ball,FALSE);
-            }else{
-                previous_ball->x = m->ball_position.c;
             }
             paddles[j].length = PADDLE_SIZE;
             paddles[j].x= m->cinfo[j].paddle_position.x;
             paddles[j].y= m->cinfo[j].paddle_position.y;
-            previous_ball->x =m->ball_position.x;
-            previous_ball->y =m->ball_position.y;
-            previous_ball->left_ver_right = m->ball_position.left_ver_right;
-            previous_ball->up_hor_down= m->ball_position.left_ver_right;
-            draw_ball(my_win, previous_ball,TRUE);
             if (j == m->client_contacting)draw_paddle(my_win , &m->cinfo[j].paddle_position, TRUE, TRUE);
             else draw_paddle(my_win , &m->cinfo[j].paddle_position, TRUE, FALSE);
-            draw_ball(my_win, previous_ball,TRUE);
         }
         else break;
     }
-    wrefresh(my_win);
+    if(!start)draw_ball(my_win, previous_ball,FALSE);
+    previous_ball->x = m->ball_position.c;
+    previous_ball->x =m->ball_position.x;
+    previous_ball->y =m->ball_position.y;
+    previous_ball->left_ver_right = m->ball_position.left_ver_right;
+    previous_ball->up_hor_down= m->ball_position.left_ver_right;
+    draw_ball(my_win, previous_ball,TRUE);
 }
 
 void start_play_state(WINDOW * my_win,  message * m ,WINDOW * message_win, paddle_position *paddles, ball_position_t * previous_ball){

@@ -33,6 +33,7 @@ void place_ball_random(ball_position_t *ball,ball_position_t *ball_s )
     ball->c ='o';
     ball->up_hor_down = rand() % 3 - 1;    //  -1 up, 1 - down
     ball->left_ver_right = rand() % 3 - 1; // 0 vertical, -1 left, 1 right
+    //initialize ball position on server
     ball_s->x = ball->x;
     ball_s->y = ball->y;
     ball_s->c = ball->c;
@@ -194,14 +195,15 @@ void add_client(message  * m, struct client_info_s  * cinfo_s, int  clients_onli
     m->cinfo[clients_online-1].paddle_position.y=WINDOW_SIZE-2;
     update_client_info( cinfo_s, m,  clients_online-1, client_addr, FALSE);  
     m->msg_type = 0; //connect message
+    m->point = TRUE;
    
 }
 
-void remove_client(message  * m, struct client_info_s  * cinfo_s ,int * clients_online)
+void remove_client(message  * m, struct client_info_s  * cinfo_s ,int  clients_online)
 {
     struct sockaddr_in nothing;
     //ciclo que procura o address do gajo que se está a disconectar
-    for (int j = m->client_contacting; j < *clients_online; j++)
+    for (int j = m->client_contacting; j < clients_online; j++)
     {
         m->cinfo[j].score= m->cinfo[j+1].score;
         m->cinfo[j].client_ID = m->cinfo[j+1].client_ID;
@@ -209,15 +211,15 @@ void remove_client(message  * m, struct client_info_s  * cinfo_s ,int * clients_
         cinfo_s[j].port = cinfo_s[j+1].port;
         update_client_info(cinfo_s,m,j,nothing,TRUE);
     }
-    m->cinfo[*clients_online].score= -1; //mete ultima posição a -1(cliente removido)
-    m->cinfo[*clients_online].client_ID = 0;
-    cinfo_s[*clients_online].score = -1;
-    cinfo_s[*clients_online].client_ID = 0;
+    m->cinfo[clients_online].score= -1; //mete ultima posição a -1(cliente removido)
+    m->cinfo[clients_online].client_ID = 0;
+    cinfo_s[clients_online].score = -1;
+    cinfo_s[clients_online].client_ID = 0;
 }
 
 void inicializa_score(message *m )
 {
-    //score dos clientes todos a 0 (to avoid trash)
+    //score dos clientes todos a -1 (to avoid and force condition to print)
     for(int i = 0; i < MAX_CLIENTS; i++){
         m->cinfo[i].score=-1;
     }
@@ -290,8 +292,8 @@ int main()
 
             break;
          case 1:
-            remove_client(&m,cinfo_s,&clients_online); //remove cliente e limpa os seus dados
-
+            remove_client(&m,cinfo_s,clients_online); //remove cliente e limpa os seus dados
+            clients_online --;
            /* for (int j = active_client; j < clients_online; j++)
             { //shift left
                 m.score[j][1] = m.score[j + 1];
