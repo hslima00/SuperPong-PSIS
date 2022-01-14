@@ -32,29 +32,24 @@ typedef struct paddle_position{
 
 typedef struct client_info_s
 {
-    //Aquilo que o server vai guardar 
-    char client_address_s[INET_ADDRSTRLEN];
-    int port;
-    int score;
-    int client_ID; 
-    struct paddle_position paddle_position_s; //paddle position server
+    char client_address_s[INET_ADDRSTRLEN];     //Clients address (saved in server)
+    int port;                                   //Clients port (saved in server)
+    int score;                                  //Clients score (saved in server)
+    int client_ID;                              //Clients ID (saved in server)
+    struct paddle_position paddle_position_s;   //Paddle position of players (saved in server)
 }client_info_s;
 
-//[0<i<clients_online]
-// m.client_contacting = i;
-//
 typedef struct client_info_t{
-    int score;
-    paddle_position paddle_position;
-    int client_ID;  // index that can change always < 10 and basicly is the position of the matrix score to look at
+    int score;                          //Score of the [client_contacting] 
+    paddle_position paddle_position;    //[client_contacting] current paddle position
+    int client_ID;                      //Index that can change always < 10 and basicly is the position of the matrix score to look at
 }client_info_t;
 
 typedef struct message 
 {  
-    int client_contacting;
-    int msg_type;   /* 0-connect   1-disconnect  2-Paddle_move 3-Board_update  4-MAX PLAYERS EXCEED*/  
-    client_info_t cinfo[MAX_CLIENTS]; 
-    ball_position_t ball_position;
-    //int score[MAX_CLIENTS][2]; //matrix 10 with score value and m.cinfo.cliend_ID [1] score [2 client number]
-    bool point; 
+    int client_contacting;              //Client that is sending the message to the server
+    int msg_type;                       //0-Connect   1-Disconnect  2-Paddle_move 3-Board_update  4-Server is full  
+    client_info_t cinfo[MAX_CLIENTS];   //Struct[MAX_CLIENTS] saves relevant info about the clients in the message
+    ball_position_t ball_position;      //Ball Position
+    bool point;                         //If the client score point = TRUE, else point = FALSE
 }message;

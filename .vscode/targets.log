@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jan 14 01:31:55 2022
+# Make data base, printed on Fri Jan 14 12:59:32 2022
 
 # Variables
 
@@ -57,7 +57,7 @@ VSCODE_CWD = /mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /root/.vscode-server/bin/899d46d82c4c95423fb7e10e68eba52050e30ba3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
+PATH = /root/.vscode-server/bin/899d46d82c4c95423fb7e10e68eba52050e30ba3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Razer Chroma SDK/bin:/mnt/c/Program Files/Razer Chroma SDK/bin:/mnt/c/Program Files (x86)/Razer/ChromaBroadcast/bin:/mnt/c/Program Files/Razer/ChromaBroadcast/bin:/mnt/c/windows/system32:/mnt/c/windows:/mnt/c/windows/System32/Wbem:/mnt/c/windows/System32/WindowsPowerShell/v1.0/:/mnt/c/windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/CodeBlocks/MinGW/Nova pasta/bin:/mnt/c/WINDOWS/system32/config/systemprofile/AppData/Local/Microsoft/WindowsApps:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Polyspace/R2021a/runtime/win64:/mnt/c/Program Files/Polyspace/R2021a/bin:/mnt/c/Program Files/Polyspace/R2021a/polyspace/bin:/mnt/c/Program Files/Portugal Identity Card/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/sampa/AppData/Local/Programs/Python/Python310/:/mnt/c/Program Files (x86)/Dev-Cpp/MinGW64:/mnt/c/Users/sampa/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/sampa/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/sampa/AppData/Local/Programs/Microsoft VS Code/bin
 # environment
 XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # makefile (from 'Makefile', line 15)
@@ -65,7 +65,7 @@ C_TRASH = *.o *.so
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-cb4cf785-a2b5-4b5e-b179-bed854b37e8d.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-075ff54d-5b14-417a-9dc8-b741f82554ca.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -85,7 +85,7 @@ MODE = -g
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/10927_interop
+WSL_INTEROP = /run/WSL/10_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # makefile (from 'Makefile', line 28)
@@ -191,9 +191,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2080, inode 44231): 18 files, no impossibilities.
+# . (device 2080, inode 44231): 19 files, no impossibilities.
 
-# 18 files, no impossibilities in 1 directories.
+# 19 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -279,6 +279,7 @@ SERVER.proj: server.o
 	$(CC) $(MODE)  $(CFLAGS) -o $@  $(SERVER_OBJS) -lcurses -lncurses
 
 CLIENT: CLIENT.proj
+ 
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
@@ -328,9 +329,9 @@ cleanall: clean cleanExe
 # strcache buffers: 1 (0) / strings = 31 / storage = 299 B / avg = 9 B
 # current buf: size = 8162 B / used = 299 B / count = 31 / avg = 9 B
 
-# strcache performance: lookups = 74 / hit rate = 58%
+# strcache performance: lookups = 75 / hit rate = 58%
 # hash-table stats:
-# Load=31/8192=0%, Rehash=0, Collisions=1/74=1%
-# Finished Make data base on Fri Jan 14 01:31:55 2022
+# Load=31/8192=0%, Rehash=0, Collisions=1/75=1%
+# Finished Make data base on Fri Jan 14 12:59:32 2022
 
  
